@@ -1,0 +1,44 @@
+from numba import cuda
+import numpy
+from numpy import *
+
+@cuda.jit
+def my_kernel(matriz_a,matriz_b,matriz_c,width):
+  
+    # Thread id in a 1D block
+    ti = cuda.threadIdx.x 
+    tj = cuda.threadIdx.y
+
+    bi = cuda.blockIdx.x
+    bj = cuda.blockIdx.y
+
+    i =  ti % width
+
+    j =  bi % width
+
+
+    x = 0
+    soma = 0
+ #   if i < width and j < width:
+    while( x < width):
+      soma = soma + matriz_a[i][x] * matriz_b[x][j]
+      x += 1
+    matriz_c[i][j] = soma
+      
+matriz_a = [ [2, 3], [1, 0] ]
+a = numpy.array(matriz_a)
+matriz_b = [ [3, 1], [2, 4] ]
+b = numpy.array(matriz_b)
+matriz_c = [ [0, 0], [0, 0] ]
+c = numpy.array(matriz_c)
+
+# números de threads por bloco
+threads_per_block = 128
+
+# número de blocos por grid
+blocks_per_grid = (1024 + (threads_per_block - 1))
+
+my_kernel[blocks_per_grid, threads_per_block](a, b, c,2)
+
+print("\n")
+print(c)
